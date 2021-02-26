@@ -1,0 +1,12 @@
+MainMod=FoxHunt
+CodeAdr=32832
+DataAdr=50000
+Options=--reserve-regs-iy
+Modules=
+Include=-I ..\Lib\C -I ..\Lib\Obj
+Libraries=
+Target=TAP
+OfrontPar=-sx3 -21
+Clean=TRUE
+Start=TRUE
+Pause=FALSE
