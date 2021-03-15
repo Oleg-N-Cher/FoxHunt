@@ -9,7 +9,7 @@ EXIT
 SET MainMod=FoxHunt
 SET CodeAdr=32832
 SET DataAdr=50000
-SET Options=--reserve-regs-iy
+SET Options=--reserve-regs-iy --max-allocs-per-node 200000
 SET Include=-I ..\Lib\C -I ..\Lib\Obj
 SET Target=TAP
 

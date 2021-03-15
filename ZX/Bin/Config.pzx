@@ -1,7 +1,7 @@
 MainMod=FoxHunt
 CodeAdr=32832
 DataAdr=50000
-Options=--reserve-regs-iy
+Options=--reserve-regs-iy --max-allocs-per-node 200000
 Modules=
 Include=-I ..\Lib\C -I ..\Lib\Obj
 Libraries=

@@ -2,7 +2,7 @@
 (* https://vk.com/64kilobytes *)
 
 MODULE FoxHunt; (*$866*)
-IMPORT b := Basic, GrFonts, g := GrTiles, c := Console, s := SYSTEM;
+IMPORT b := Basic, GrFonts, g := GrTiles, c := Console, s := SYSTEM, KMouse;
 
 TYPE
   NumbersTileSet = ARRAY 10 * 32 OF CHAR;
@@ -47,7 +47,7 @@ VAR
   field, number: ARRAY Xm, Ym OF INT8;
   opened, marked: ARRAY Xm, Ym OF BOOLEAN;
   is_fire, is_mark, is_end: BOOLEAN;
-  is_only1, is_axes, is_sounds, is_line, is_auto: BOOLEAN;
+  is_only1, is_axes, is_sounds, is_line, is_auto, is_mouse: BOOLEAN;
 
 PROCEDURE PrintField;
   VAR x, y: INT8;
@@ -76,17 +76,20 @@ BEGIN
     c.At(4, 13); c.WriteStr("2. Только 1 лиса в поле");
     c.At(4, 14); c.WriteStr("3. Показать направления");
     c.At(4, 15); c.WriteStr("4. Звуки");
+    c.At(4, 16); c.WriteStr("5. Кемпстон-мышь");
     c.At(28, 13);
     IF is_only1 THEN c.WriteCh("Y") ELSE c.WriteCh("N") END;
     c.At(28, 14);
     IF is_axes THEN c.WriteCh("Y") ELSE c.WriteCh("N") END;
     c.At(28, 15);
     IF is_sounds THEN c.WriteCh("Y") ELSE c.WriteCh("N") END;
-    c.At(4, 16); (* 5 !!! *)
-    IF is_line THEN c.WriteStr("5. Передать привет моим Y");
-      c.At(7, 17); c.WriteStr("друзьям!");
+    c.At(28, 16);
+    IF is_mouse THEN c.WriteCh("Y") ELSE c.WriteCh("N") END;
+    c.At(4, 17); (* 6 !!! *)
+    IF is_line THEN c.WriteStr("6. Передать привет моим Y");
+      c.At(7, 18); c.WriteStr("друзьям!");
     END;
-    REPEAT key := CHR(b.PEEK(23560)) UNTIL (key >= "1") & (key <= "5");
+    REPEAT key := CHR(b.PEEK(23560)) UNTIL (key >= "1") & (key <= "6");
     IF is_sounds THEN b.BEEP(20, 20) END;
     b.POKE(23560, 0);
     CASE key OF
@@ -94,6 +97,7 @@ BEGIN
       | "2": is_only1 := ~is_only1;
       | "3": is_axes := ~is_axes;
       | "4": is_sounds := ~is_sounds;
+      | "5": is_mouse := ~is_mouse;
     ELSE is_line := TRUE;
     END;
   END;
@@ -161,6 +165,7 @@ BEGIN
 END Menu;
 
 PROCEDURE Control;
+  VAR keys: SET; ticks: INT8;
 BEGIN
   is_fire := FALSE; is_mark := FALSE;
   CASE CHR(b.PEEK(23560)) OF
@@ -172,6 +177,21 @@ BEGIN
     | "p", "7": IF cur_x < Xm-1 THEN INC(cur_x) ELSE cur_x := 0 END;
     | "e": is_end := TRUE;
   ELSE
+    IF is_mouse THEN
+      KMouse.SetXY(127, 95);
+      ticks := 5; REPEAT
+      b.PAUSE(1);
+        keys := KMouse.Read();
+        IF (keys # {}) THEN
+          IF keys*{1} = {} THEN is_mark := TRUE END;
+          IF keys*{0} = {} THEN is_fire := TRUE END;
+        END;
+      DEC(ticks) UNTIL ticks = 0;
+      IF KMouse.Y > 159 THEN IF cur_y < Ym-1 THEN INC(cur_y) ELSE cur_y := 0 END END;
+      IF KMouse.Y <  32 THEN IF cur_y > 0 THEN DEC(cur_y) ELSE cur_y := Ym-1 END END;
+      IF KMouse.X <  64 THEN IF cur_x > 0 THEN DEC(cur_x) ELSE cur_x := Xm-1 END END;
+      IF KMouse.X > 191 THEN IF cur_x < Xm-1 THEN INC(cur_x) ELSE cur_x := 0 END END;
+    END;
   END;
   b.POKE(23560, 0);
 END Control;
@@ -338,7 +358,7 @@ BEGIN
 END FoxPlot;
 
 BEGIN (*$MAIN*)
-  is_only1 := TRUE; is_axes := TRUE; is_sounds := TRUE;
+  is_only1 := TRUE; is_axes := TRUE; is_sounds := TRUE; is_mouse := KMouse.Detect();
   LOOP
     Zero;
     Menu;
